@@ -8,8 +8,6 @@ import {
 } from 'firebase/auth'
 import { useState, useEffect } from 'react'
 
-import React from 'react'
-
 export const useAuthentication = () => {
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(null)
@@ -25,7 +23,7 @@ export const useAuthentication = () => {
 
     async function createUser(data) {
         checkIfIsCancelled()
-        
+
         setLoading(true)
         setError(null)
 
@@ -33,28 +31,32 @@ export const useAuthentication = () => {
             const { user } = await createUserWithEmailAndPassword(
                 auth,
                 data.email,
-                data.password
+                data.password,
+                data.name,
+                data.confirmPassword
             )
-            
-            await updateProfile(
-                user, {
-                    displayName: data.displayName,
-                })
-                setLoading(false)
-                return user
-        } catch (error) {
+            await updateProfile(user, {
+                displayName: data.displayName
+            })
+            setLoading(false)
+
+            return user
+        }catch(error){
             console.error(error.message)
             console.table(typeof error.message)
 
             let systemErrorMessage
 
-            if (error.message.include('Password')) {
-                systemErrorMessage = "A senha precisa conter ao menos 6 caracteres!"
-            } 
-            else if (error.message.include('email-already')) {
-                systemErrorMessage = "E-mail já cadastrado em nosso sistema"
+            if(error.message.include('Password')){
+                systemErrorMessage = "A senha precisa conter ao menos 6 caracteres."
+            }else if(error.message.include('username')) {
+                systemErrorMessage = "Usuário já cadastrado no sistema."
+            }else if(error.message.include('confirmPassword')) {
+                systemErrorMessage = "Senha não está igual a de cima."
             }
-            else {
+            else if(error.message.include('email-already')){
+                systemErrorMessage = "E-mail já cadastrado em nosso sistema."
+            }else{
                 systemErrorMessage = "Ocorreu um erro, tente novamente mais tarde."
             }
 
@@ -63,32 +65,30 @@ export const useAuthentication = () => {
         }
     }
 
-    const login = async (data) => {
+    const login = async (data) =>{
         checkIfIsCancelled()
 
         setLoading(true)
         setError(null)
 
-        try {
+        try{
             await signInWithEmailAndPassword(
                 auth,
                 data.email,
                 data.password
             )
             setLoading(false)
-        } catch (error) {
+        }catch(error){
             console.error(error.message)
             console.table(typeof error.message)
 
             let systemErrorMessage
 
-            if (error.message.include('invalid-login-credentials')) {
-                systemErrorMessage = "Este usuário não tem registro em nossos sistemas!"
-            } 
-            else if (error.message.include('wrong-password')) {
-                systemErrorMessage = "Existe algum erro em suas credenciais de login!"
-            }
-            else {
+            if(error.message.include('invalid-login-credentials')){
+                systemErrorMessage = "Este usuário não tem registro em nossos sistemas"
+            }else if(error.message.include('wrong-password')){
+                systemErrorMessage = "Existe algum erro em suas credenciais de login"
+            }else{
                 systemErrorMessage = "Ocorreu um erro, tente novamente mais tarde."
             }
 
@@ -97,16 +97,16 @@ export const useAuthentication = () => {
         }
     }
 
-    const logout = (data) => {
+    const logout = ()=>{
         checkIfIsCancelled()
         signOut(auth)
     }
 
-    useEffect(() => {
+    useEffect(() =>{
         return () => setCancelled(true)
     }, [])
 
-    return {
+    return{
         auth,
         createUser,
         error,
