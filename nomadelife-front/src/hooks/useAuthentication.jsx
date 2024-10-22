@@ -108,3 +108,5 @@ export const useAuthentication = () => {
         login
     }
 }
+
+export default useAuthentication
